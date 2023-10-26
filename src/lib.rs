@@ -42,18 +42,19 @@ pub fn save_image(
     nb_iterations: &[usize],
     width: u32,
     height: u32,
-    max_iterations: usize,
+    _max_iterations: usize, // I don't need to use it for now
     path: &str,
 ) {
     let mut imgbuf = image::ImageBuffer::new(width, height);
 
     for (x, y, pixel) in imgbuf.enumerate_pixels_mut() {
-        let i = nb_iterations[(y * width + x) as usize];
-        let red: u8 =
-            (((max_iterations as f32 - i as f32) / (max_iterations as f32)) * 255f32) as u8;
-        let (green, blue) = (red, red);
+        let smooth = (nb_iterations[(y * width + x) as usize]) as f32;
 
-        *pixel = image::Rgb([red as u8, green as u8, blue as u8]);
+        let red = (255.0 * smooth.sin()).abs() as u8;
+        let green = (255.0 * (smooth * 0.5).sin()).abs() as u8;
+        let blue = (255.0 * (smooth * 0.8).cos()).abs() as u8;
+
+        *pixel = image::Rgb([red, green, blue]);
     }
 
     imgbuf.save(path).unwrap();
